@@ -1,0 +1,13 @@
+source /usr/local/amber20/dat/leap/cmd/oldff/leaprc.ff14SB
+source leaprc.water.tip3p
+protein = loadpdb protein.pdb
+set default PBRadii mbondi2
+saveAmberParm protein protein.prmtop protein.inpcrd
+savepdb protein protein_leap.pdb
+charge protein
+addions protein Na+ 0
+charge protein
+solvatebox protein TIP3PBOX 12
+saveamberparm protein protein_solvated.prmtop protein_solvated.inpcrd
+savepdb protein protein_leap_solvated.pdb
+quit
