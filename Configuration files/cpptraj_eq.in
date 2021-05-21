@@ -1,0 +1,6 @@
+parm protein_solvated.prmtop
+trajin eq3.mdcrd
+autoimage
+trajout eq3_cpptraj.crd
+run
+quit
