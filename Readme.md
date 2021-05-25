@@ -91,7 +91,7 @@ Equilibration
 ```
 
 #### Production
-*MD simulation of 200ns*
+*MD simulation of 200ns*  
 Make ```prod.in```
 ```
 Production
@@ -250,6 +250,135 @@ Make *run_simul.sh* and *run_all.sh* executable:
 Check the **core** and **node** available on your server before run the job.  
 Finally we can run the simulation/s:  
 ```nohup ./run_all.sh core_number node_number &```  
+
+**Note:**  
+* *nohup* to be sure the job runs in case you close the shell.  
+* *&* runs the job in background.
+
+## 2 Restart simulation
+
+The configuration reported above is for a simulation of 200ns, but how can we continue the simulation and add other 200ns?
+How can we restart the simulation?
+
+### 2.1 Before restart
+We need to make some name modifications to avoid overwriting the file we have from the previous simulation.
+
+To be sure to not overwrite previous output files, we create a **new folder** in which we will move the necessary files.  
+Then in this folder create 2 other folders one for the *WT* protein and one for *G101V* mutant portein. We will copy in them the file we need and in these folders we will find the output files.
+
+#### 2.1.2 Topology file
+Move in the correspondent folder the topology file: 
+* *protein_solvated.prmtop* of **WT**
+* *protein_solvated.prmtop* of **G101V**
+
+#### 2.1.3 Production  
+Restart means that we will run only the **MD production** step for other 200ns.  
+Make  ```prod_rest.in``` *MD simulation of 200ns*:
+```
+Production
+ &cntrl
+   nstlim=100000000, dt=0.002,
+   ntpr=100000, ntwx=20000, ntwr=500000,
+   irest=1, ntx=5,
+   ntc=2, ntf=2, ntb=2,
+   ntt=3, gamma_ln=1, temp0=300.0,
+   ntp=1, taup=2.0,
+   cut=10.0, ig=-1,
+/
+```
+**Note:**  
+*irest=1*: restart the simulation, reading coordinates and velocities from previously saved restart file.
+The velocity information is necessary when restarting, so *ntx* must be 4 or higher if *irest=1*.
+
+#### 2.1.4 Scripts
+We will use 2 scripts to perform more simulation on after the other.
+
+* **run_rest-simul.sh**  
+
+To run the command for production step we need **prod.rst** from the previous simulation. Copy the file in the correspondent folder.  
+  
+This script runs also commands for generating output files for the analysis.  
+Make ```run_rest-simul.sh```
+```
+#!/bin/sh
+
+# To run this program with 4 cores on GPU 1:
+# ./run_simul.sh E136D 4 1
+
+working_dir=$1
+cores=$2
+node=$3
+
+log=state_simul
+
+echo 'Ready! ' $working_dir
+
+cd $working_dir
+
+# Change if it is necessary
+export CUDA_VISIBLE_DEVICES=$node
+
+#running production
+echo 'prod...' >>$log
+pmemd.cuda -O -i ../prod_rest.in -c prod.rst -p protein_solvated.prmtop -o prod_rest1.out -r prod_rest1.rst -x prod_rest1.mdcrd -inf prod_rest1.mdinfo
+#making production analysis files in a new directory
+echo 'prod_analysis...' >>$log
+mkdir prod_analysis
+cd prod_analysis
+process_mdout.perl ../prod_rest1.out
+#back to working directory
+cd ..
+#converting mdcrd file into crd for analysis in VMD Windows
+cpptraj -i ../cpptraj_prod_rest1.in
+tar -czvf prod_rest1_cpptraj.tar.gz prod_rest1_cpptraj.crd
+
+#simulation done
+echo "Done!" >>$log 
+```
+  
+* **run_rest-all.sh**    
+
+This script is for the actual running. It works as in the normal simulation.  
+  In *mut_list* type the name/s of the folder/s in which you want run the calculation ( folders correspond to the system you are studying).
+  
+Make ```run_rest-all.sh```
+```
+#!/bin/sh
+
+
+# To run this program with 4 cores on GPU 1:
+# ./run_all.sh 4 1
+
+if [ $# -eq 2 ]
+then
+	# Define list of mutations
+	#mut_list="WT G101V"
+	mut_list="WT"
+	# Define a log
+	log=state_all
+
+	echo '' >$log
+
+	# Simulate mutations
+	for mut in $mut_list; do
+		# Accessing to elements of the list and append info to log
+		echo 'Accessing ' $mut >>$log
+		# Run run_rest-simul.sh script for which is necessary to enter the core and node
+		./run_rest-simul.sh $mut $1 $2 
+	done
+else
+	echo 'Error: 2 arguments are expected!'
+fi
+```
+
+### 2.2 Run restart simulation
+Make *run_rest-simul.sh* and *run_rest-all.sh* executable:  
+```chmod +x run_rest-simul.sh```  
+```chmod +x run_rest-all.sh```  
+
+Check the **core** and **node** available on your server before run the job.  
+Finally we can run the simulation/s:  
+```nohup ./run_rest-all.sh core_number node_number &```  
 
 **Note:**  
 * *nohup* to be sure the job runs in case you close the shell.  
