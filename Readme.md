@@ -389,8 +389,9 @@ Finally we can run the simulation/s:
 
 ---
 
-# 3 RMSD
+# 3 RMSD and RMSF
 
+## 3.1 RMSD
 *RMSD for the backbone and reference first frame*  
 Make ```rmsd.in```  
 ```
@@ -399,7 +400,7 @@ trajin prod.mdcrd
 rms @C,CA,N first out rmsd_backbone.agr
 ```
 
-# RMSF
+## 3.2 RMSF
 
 *RMSF for the backbone of atoms and residues*  
 Make  ```rmsf.in```  
@@ -413,3 +414,8 @@ rms ref MyAvg
 atomicfluct out RMSF_backbone_atom.agr @CA,C,N
 atomicfluct out RMSF_backbone_res.agr @CA,C,N byres
 ```  
+
+## Run RMSD/F
+
+Run RMSD: ``` cpptraj -i rmsd.in  ```    
+Run RMSF: ``` cpptraj -i rmsf.in  ```  
