@@ -1,0 +1,8 @@
+parm protein_solvated.prmtop
+trajin prod.mdcrd
+rms first
+average crdset MyAvg
+run
+rms ref MyAvg
+atomicfluct out RMSF_backbone_atom.agr @CA,C,N
+atomicfluct out RMSF_backbone_res.agr @CA,C,N byres

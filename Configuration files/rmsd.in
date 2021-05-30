@@ -1,0 +1,3 @@
+parm protein_solvated.prmtop
+trajin prod.mdcrd
+rms @C,CA,N first out rmsd_backbone.agr
