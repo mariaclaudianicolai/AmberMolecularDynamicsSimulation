@@ -276,7 +276,7 @@ Move in the correspondent folder the topology file:
 
 ### 2.1.3 Production  
 Restart means that we will run only the **MD production** step for other 200ns.  
-Make  ```prod_rest.in``` *MD simulation of 200ns*:
+Make  ```prod_rst.in``` *MD simulation of 200ns*:
 ```
 Production
  &cntrl
@@ -296,12 +296,12 @@ The velocity information is necessary when restarting, so *ntx* must be 4 or hig
 ### 2.1.4 Scripts
 We will use 2 scripts to perform more simulation on after the other.
 
-* **run_rest-simul.sh**  
+* **run_rst-simul.sh**  
 
 To run the command for production step we need **prod.rst** from the previous simulation. Copy the file in the correspondent folder.  
   
 This script runs also commands for generating output files for the analysis.  
-Make ```run_rest-simul.sh```
+Make ```run_rst-simul.sh```
 ```
 #!/bin/sh
 
@@ -323,28 +323,28 @@ export CUDA_VISIBLE_DEVICES=$node
 
 #running production
 echo 'prod...' >>$log
-pmemd.cuda -O -i ../prod_rest.in -c prod.rst -p protein_solvated.prmtop -o prod_rest1.out -r prod_rest1.rst -x prod_rest1.mdcrd -inf prod_rest1.mdinfo
+pmemd.cuda -O -i ../prod_rst.in -c prod.rst -p protein_solvated.prmtop -o prod_rst1.out -r prod_rst1.rst -x prod_rst1.mdcrd -inf prod_rst1.mdinfo
 #making production analysis files in a new directory
 echo 'prod_analysis...' >>$log
 mkdir prod_analysis
 cd prod_analysis
-process_mdout.perl ../prod_rest1.out
+process_mdout.perl ../prod_rst1.out
 #back to working directory
 cd ..
 #converting mdcrd file into crd for analysis in VMD Windows
-cpptraj -i ../cpptraj_prod_rest1.in
-tar -czvf prod_rest1_cpptraj.tar.gz prod_rest1_cpptraj.crd
+cpptraj -i ../cpptraj_prod_rst1.in
+tar -czvf prod_rst1_cpptraj.tar.gz prod_rst1_cpptraj.crd
 
 #simulation done
 echo "Done!" >>$log 
 ```
   
-* **run_rest-all.sh**    
+* **run_rst-all.sh**    
 
 This script is for the actual running. It works as in the normal simulation.  
   In *mut_list* type the name/s of the folder/s in which you want run the calculation ( folders correspond to the system you are studying).
   
-Make ```run_rest-all.sh```
+Make ```run_rst-all.sh```
 ```
 #!/bin/sh
 
@@ -366,8 +366,8 @@ then
 	for mut in $mut_list; do
 		# Accessing to elements of the list and append info to log
 		echo 'Accessing ' $mut >>$log
-		# Run run_rest-simul.sh script for which is necessary to enter the core and node
-		./run_rest-simul.sh $mut $1 $2 
+		# Run run_rst-simul.sh script for which is necessary to enter the core and node
+		./run_rst-simul.sh $mut $1 $2 
 	done
 else
 	echo 'Error: 2 arguments are expected!'
@@ -375,13 +375,13 @@ fi
 ```
 
 ## 2.2 Run restart simulation
-Make *run_rest-simul.sh* and *run_rest-all.sh* executable:  
-```chmod +x run_rest-simul.sh```  
-```chmod +x run_rest-all.sh```  
+Make *run_rst-simul.sh* and *run_rst-all.sh* executable:  
+```chmod +x run_rst-simul.sh```  
+```chmod +x run_rst-all.sh```  
 
 Check the **core** and **node** available on your server before run the job.  
 Finally we can run the simulation/s:  
-```nohup ./run_rest-all.sh core_number node_number &```  
+```nohup ./run_rst-all.sh core_number node_number &```  
 
 **Note:**  
 * *nohup* to be sure the job runs in case you close the shell.  
@@ -407,10 +407,11 @@ Make  ```rmsf.in```
 ```  
 parm protein_solvated.prmtop
 trajin prod.mdcrd
-rms first
-average crdset MyAvg
-run
-rms ref MyAvg
+#rms first
+#average crdset MyAvg
+#run
+#rms ref MyAvg
+rmsd @C,CA,N first
 atomicfluct out RMSF_backbone_atom.agr @CA,C,N
 atomicfluct out RMSF_backbone_res.agr @CA,C,N byres
 ```  

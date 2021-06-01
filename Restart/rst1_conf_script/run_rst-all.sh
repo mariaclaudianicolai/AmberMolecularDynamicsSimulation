@@ -18,8 +18,8 @@ then
 	for mut in $mut_list; do
 		# Accessing to elements of the list and append info to log
 		echo 'Accessing ' $mut >>$log
-		# Run run_rest-simul.sh script for which is necessary to enter the core and node
-		./run_rest-simul.sh $mut $1 $2 
+		# Run run_rst-simul.sh script for which is necessary to enter the core and node
+		./run_rst-simul.sh $mut $1 $2 
 	done
 else
 	echo 'Error: 2 arguments are expected!'

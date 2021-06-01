@@ -1,0 +1,6 @@
+parm protein_solvated.prmtop
+trajin prod_rst1.mdcrd
+autoimage
+trajout prod_rst1_cpptraj.crd
+run
+quit

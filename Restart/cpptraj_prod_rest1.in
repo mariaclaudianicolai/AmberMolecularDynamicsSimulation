@@ -1,6 +1,0 @@
-parm protein_solvated.prmtop
-trajin prod_rest1.mdcrd
-autoimage
-trajout prod_rest1_cpptraj.crd
-run
-quit
